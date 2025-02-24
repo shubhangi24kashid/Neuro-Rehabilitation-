@@ -27,6 +27,16 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Add your assets here (ensure the path is correct)
+  # Ensure correct indentation of assets
   assets:
+    - assets/analytics.png
+    - assets/doctor.png
+    - assets/face1.webp
+    - assets/face2.webp
+    - assets/face3.webp
+    - assets/face4.webp
+    - assets/face5.webp
+    - assets/game.png
+    - assets/highlight.png
     - assets/logo.jpg
+    - assets/rehab.png
