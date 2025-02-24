@@ -27,9 +27,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
   assets:
-    - assets/logo.jpg
-    - assets/balloon_burst.html
-    - assets/shape_tracer.html
-    - assets/trace_train.html
+    -  assets/
+

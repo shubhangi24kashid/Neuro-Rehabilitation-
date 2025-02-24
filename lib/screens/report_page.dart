@@ -8,7 +8,8 @@ class ReportPage extends StatelessWidget {
     {"game": "Shape Tracing", "timeTaken": "60s", "progress": 90},
   ];
 
-  const ReportPage({Key? key}) : super(key: key); // Add key parameter
+  // Using 'super.key' for a cleaner constructor
+  ReportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,8 @@ class ReportPage extends StatelessWidget {
               "Today's Progress",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20), // Use SizedBox for whitespace
+            const SizedBox(height: 20), // Adds spacing
+
             Expanded(
               child: ListView.builder(
                 itemCount: todayReports.length,
@@ -45,13 +47,16 @@ class ReportPage extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 20), // Use SizedBox for whitespace
+
+            const SizedBox(height: 20), // Adds spacing
+
             const Text(
               "Progress Chart",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20), // Use SizedBox for whitespace
-            Container(
+            const SizedBox(height: 20),
+
+            SizedBox(
               height: 200,
               child: BarChart(
                 BarChartData(
@@ -63,7 +68,7 @@ class ReportPage extends StatelessWidget {
                     barRods: [
                       BarChartRodData(
                         toY: entry.value["progress"].toDouble(),
-                        color: Colors.purple, // Use 'color' instead of 'colors'
+                        color: Colors.purple,
                         width: 20,
                       ),
                     ],

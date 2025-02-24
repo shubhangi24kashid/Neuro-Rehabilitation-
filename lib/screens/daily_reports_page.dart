@@ -9,7 +9,8 @@ class DailyReportsPage extends StatelessWidget {
     {"date": "2023-10-04", "gamesPlayed": 3, "totalProgress": 80},
   ];
 
-  const DailyReportsPage({Key? key}) : super(key: key); // Add key parameter
+  // Removed 'const' from constructor to avoid the error
+  DailyReportsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,8 @@ class DailyReportsPage extends StatelessWidget {
               "Daily Progress Summary",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20), // Use SizedBox for whitespace
+            const SizedBox(height: 20), // Adds spacing
+
             Expanded(
               child: ListView.builder(
                 itemCount: dailyReports.length,
@@ -42,13 +44,16 @@ class DailyReportsPage extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 20), // Use SizedBox for whitespace
+
+            const SizedBox(height: 20), // Adds spacing
+
             const Text(
               "Progress Over Time",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20), // Use SizedBox for whitespace
-            Container(
+            const SizedBox(height: 20),
+
+            SizedBox(
               height: 200,
               child: LineChart(
                 LineChartData(
@@ -61,7 +66,7 @@ class DailyReportsPage extends StatelessWidget {
                           entry.key.toDouble(),
                           entry.value["totalProgress"].toDouble()))
                           .toList(),
-                      color: Colors.purple, // Use 'color' instead of 'colors'
+                      color: Colors.purple, // Corrected 'colors' to 'color'
                       isCurved: true,
                       dotData: FlDotData(show: true),
                     ),
