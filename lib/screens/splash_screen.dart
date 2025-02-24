@@ -1,4 +1,3 @@
-// lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,9 +15,13 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/login');
-    });
+    final BuildContext contextBeforeDelay = context; // ✅ Store context before async call
+
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return; // ✅ Ensure widget is still in the tree
+
+    Navigator.pushReplacementNamed(contextBeforeDelay, '/login'); // ✅ Now safe to use context
   }
 
   @override

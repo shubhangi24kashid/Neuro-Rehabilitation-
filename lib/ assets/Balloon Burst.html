@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Burst</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+        }
+        canvas {
+            border: 3px solid black;
+            display: block;
+            margin: 20px auto;
+            background-color: #e3f2fd;
+        }
+        #score, #level, #progress, #report {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .stats {
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div id="score">Score: 0</div>
+<div id="progress">Progress: 0%</div>
+<div style="text-align: center;">
+    <label for="difficulty">Difficulty:</label>
+    <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+    </select>
+    <button onclick="startGame()">Start</button>
+</div>
+<canvas id="canvas" width="500" height="500"></canvas>
+<div id="report"></div>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let score = 0;
+    let balloons = [];
+    let spawnRate = 1000;
+    let balloonSpeed = 1;
+    let gameInterval;
+    let startTime, endTime, clicks = 0;
+
+    class Balloon {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = canvas.height + 30;
+            this.radius = 20 + Math.random() * 30;
+            this.speed = balloonSpeed + Math.random();
+            this.color = `hsl(${Math.random() * 360}, 100%, 60%)`; // Random colors
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        update() {
+            this.y -= this.speed;
+            if (this.y + this.radius < 0) {
+                this.removeBalloon();
+            }
+        }
+
+        hit(x, y) {
+            const dist = Math.hypot(x - this.x, y - this.y);
+            if (dist < this.radius) {
+                score++;
+                updateProgress();
+                return true;
+            }
+            return false;
+        }
+
+        removeBalloon() {
+            balloons = balloons.filter(balloon => balloon !== this);
+        }
+    }
+
+    function startGame() {
+        score = 0;
+        clicks = 0;
+        document.getElementById('score').innerText = "Score: 0";
+        document.getElementById('progress').innerText = "Progress: 0%";
+        balloons = [];
+        clearInterval(gameInterval);
+        setDifficulty();
+        startTime = new Date();
+        gameInterval = setInterval(() => {
+            balloons.push(new Balloon());
+        }, spawnRate);
+        gameLoop();
+    }
+
+    function setDifficulty() {
+        const difficulty = document.getElementById("difficulty").value;
+        if (difficulty === "easy") {
+            spawnRate = 1500;
+            balloonSpeed = 1;
+        } else if (difficulty === "medium") {
+            spawnRate = 1000;
+            balloonSpeed = 2;
+        } else {
+            spawnRate = 600;
+            balloonSpeed = 4;
+        }
+    }
+
+    canvas.addEventListener("click", (e) => {
+        clicks++;
+        const mouseX = e.offsetX;
+        const mouseY = e.offsetY;
+        for (let i = balloons.length - 1; i >= 0; i--) {
+            if (balloons[i].hit(mouseX, mouseY)) {
+                balloons.splice(i, 1);
+                break;
+            }
+        }
+    });
+
+    function updateProgress() {
+        const progress = Math.min(Math.floor((score / 10) * 100), 100);
+        document.getElementById("progress").innerText = `Progress: ${progress}%`;
+
+        if (progress === 100) {
+            endTime = new Date();
+            setTimeout(() => {
+                clearInterval(gameInterval);
+                showReport();
+            }, 500);
+        }
+    }
+
+    function showReport() {
+        const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+        const accuracy = ((score / clicks) * 100).toFixed(2);
+        document.getElementById("report").innerHTML = `
+            <div class="stats">
+                <p><strong>Game Summary</strong></p>
+                <p>Time Taken: ${timeTaken} seconds</p>
+                <p>Balloons Popped: ${score}</p>
+                <p>Clicks Made: ${clicks}</p>
+                <p>Accuracy: ${accuracy}%</p>
+            </div>
+        `;
+    }
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        balloons.forEach(balloon => balloon.update());
+        balloons.forEach(balloon => balloon.draw());
+        requestAnimationFrame(gameLoop);
+    }
+</script>
+</body>
+</html>

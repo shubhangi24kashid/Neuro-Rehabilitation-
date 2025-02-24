@@ -11,12 +11,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  fl_chart: ^0.55.0
   # Dependency for PostgreSQL database
   postgres: ^2.5.4
 
   # Cupertino icons package for iOS-style icons
   cupertino_icons: ^1.0.8
+  webview_flutter: ^4.10.0
 
 dev_dependencies:
   flutter_test:
@@ -27,6 +28,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Add your assets here (ensure the path is correct)
   assets:
     - assets/logo.jpg
+    - assets/balloon_burst.html
+    - assets/shape_tracer.html
+    - assets/trace_train.html

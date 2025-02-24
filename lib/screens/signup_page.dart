@@ -1,4 +1,3 @@
-// lib/screens/signup_page.dart
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 
@@ -13,7 +12,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
+  bool _isLoading = false; // Now used in the UI
 
   Future<PostgreSQLConnection> connectToDatabase() async {
     var connection = PostgreSQLConnection(
@@ -28,10 +27,13 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> signUp() async {
+    if (!mounted) return; // Ensure widget is still in the tree
+
     setState(() => _isLoading = true);
-    final conn = await connectToDatabase();
 
     try {
+      final conn = await connectToDatabase();
+
       await conn.query(
         'INSERT INTO users (name, email, password) VALUES (@name, @email, @password)',
         substitutionValues: {
@@ -41,23 +43,27 @@ class _SignUpPageState extends State<SignUpPage> {
         },
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully!')),
-      );
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      print('Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to create account')),
-      );
-    } finally {
       await conn.close();
-      setState(() => _isLoading = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created successfully!')),
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create account')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {  // Missing build() was added
     return Scaffold(
       appBar: AppBar(title: const Text('Sign Up')),
       body: Padding(
@@ -82,11 +88,11 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             const SizedBox(height: 40),
             _isLoading
-                ? const CircularProgressIndicator()
+                ? const CircularProgressIndicator() // Now correctly used
                 : ElevatedButton(
-                    onPressed: signUp,
-                    child: const Text('Sign Up'),
-                  ),
+              onPressed: signUp,
+              child: const Text('Sign Up'),
+            ),
             TextButton(
               onPressed: () => Navigator.pushNamed(context, '/login'),
               child: const Text('Already have an account? Login'),

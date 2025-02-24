@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dot Connector</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 3px solid black;
+            display: block;
+            margin: 20px auto;
+            background-color: #f0f8ff;
+        }
+        #instructions {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        #level, #progress, #report {
+            font-size: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .stats {
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div id="instructions">Follow the dotted path with your mouse!</div>
+<div id="level">Level: 1</div>
+<div id="progress">Progress: 0%</div>
+<canvas id="canvas" width="500" height="500"></canvas>
+<div id="report"></div>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let currentLevel = 1;
+    let isDrawing = false;
+    let pathIndex = 0;
+    let tracedPoints = [];
+    let startTime, endTime, movements = 0;
+
+    const levels = [
+        [{x: 100, y: 100}, {x: 200, y: 200}, {x: 300, y: 150}],
+        [{x: 50, y: 400}, {x: 250, y: 100}, {x: 450, y: 400}],
+        [{x: 100, y: 250}, {x: 250, y: 50}, {x: 400, y: 250}, {x: 250, y: 450}]
+    ];
+
+    function drawLevel() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const points = levels[currentLevel - 1];
+
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.strokeStyle = "gray";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        points.forEach((point, index) => {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = pathIndex > index ? "green" : "blue";
+            ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.font = "14px Arial";
+            ctx.fillText(index + 1, point.x - 4, point.y + 5);
+        });
+    }
+
+    canvas.addEventListener("mousedown", (e) => {
+        const { offsetX, offsetY } = e;
+        const firstDot = levels[currentLevel - 1][0];
+        const distance = Math.sqrt((offsetX - firstDot.x) ** 2 + (offsetY - firstDot.y) ** 2);
+        if (distance < 10) {
+            isDrawing = true;
+            tracedPoints = [{ x: offsetX, y: offsetY }];
+            pathIndex = 1;
+            startTime = new Date();
+            movements = 0;
+        }
+    });
+
+    canvas.addEventListener("mouseup", () => {
+        isDrawing = false;
+        checkCompletion();
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+        if (!isDrawing) return;
+        const { offsetX, offsetY } = e;
+        const nextDot = levels[currentLevel - 1][pathIndex];
+        const distance = Math.sqrt((offsetX - nextDot.x) ** 2 + (offsetY - nextDot.y) ** 2);
+
+        if (distance < 10) {
+            tracedPoints.push({ x: offsetX, y: offsetY });
+            pathIndex++;
+            updateProgress();
+            movements++;
+        }
+
+        drawLevel();
+        drawTracedPath();
+    });
+
+    function drawTracedPath() {
+        ctx.beginPath();
+        ctx.moveTo(tracedPoints[0].x, tracedPoints[0].y);
+        tracedPoints.forEach(point => ctx.lineTo(point.x, point.y));
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+
+    function updateProgress() {
+        const progress = Math.floor((pathIndex / levels[currentLevel - 1].length) * 100);
+        document.getElementById("progress").innerText = `Progress: ${progress}%`;
+    }
+
+    function checkCompletion() {
+        if (pathIndex === levels[currentLevel - 1].length) {
+            endTime = new Date();
+            const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+            setTimeout(() => {
+                alert("Level Complete!");
+                showReport(timeTaken, movements);
+                if (currentLevel < levels.length) {
+                    currentLevel++;
+                    document.getElementById("level").innerText = `Level: ${currentLevel}`;
+                    drawLevel();
+                } else {
+                    alert("You finished all levels!");
+                }
+            }, 500);
+        }
+    }
+
+    function showReport(timeTaken, movements) {
+        document.getElementById("report").innerHTML = `
+            <div class="stats">
+                <p><strong>Level ${currentLevel} Summary</strong></p>
+                <p>Time Taken: ${timeTaken} seconds</p>
+                <p>Movements Made: ${movements}</p>
+            </div>
+        `;
+    }
+
+    drawLevel();
+</script>
+</body>
+</html>
