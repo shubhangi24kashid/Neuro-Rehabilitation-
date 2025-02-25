@@ -6,7 +6,7 @@ import 'package:heal_x/main.dart'; // ✅ Ensure correct project import
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const HealXperienceApp()); // ✅ Updated to match main.dart
+    await tester.pumpWidget(const HealXperienceApp(isLoggedIn: false)); // ✅ Pass required parameter
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

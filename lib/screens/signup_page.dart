@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:postgres/postgres.dart';
+import '../services/api_service.dart'; // ✅ Import API service
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -12,58 +12,52 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false; // Now used in the UI
+  bool _isLoading = false;
 
-  Future<PostgreSQLConnection> connectToDatabase() async {
-    var connection = PostgreSQLConnection(
-      'your_host', // e.g., 'localhost'
-      5432,
-      'your_database',
-      username: 'your_username',
-      password: 'your_password',
-    );
-    await connection.open();
-    return connection;
-  }
-
-  Future<void> signUp() async {
-    if (!mounted) return; // Ensure widget is still in the tree
+  Future<void> signupUser() async {
+    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
+    debugPrint("📢 Signing up user...");
 
     try {
-      final conn = await connectToDatabase();
-
-      await conn.query(
-        'INSERT INTO users (name, email, password) VALUES (@name, @email, @password)',
-        substitutionValues: {
-          'name': _nameController.text,
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        },
+      bool success = await ApiService.signup(
+        _nameController.text.trim(),  // ✅ Now includes name
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
 
-      await conn.close();
+      if (!mounted) return;
 
-      if (mounted) {
+      setState(() => _isLoading = false);
+
+      if (success) {
+        debugPrint("✅ Signup successful! Redirecting to Survey Page...");
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created successfully!')),
+          const SnackBar(content: Text('Signup Successful! Please complete the survey.')),
         );
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, '/survey'); // ✅ Redirects to survey
+      } else {
+        debugPrint("❌ Signup failed.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Signup Failed. Try again.')),
+        );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to create account')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      debugPrint("❌ Error during signup: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
     }
   }
 
   @override
-  Widget build(BuildContext context) {  // Missing build() was added
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Sign Up')),
       body: Padding(
@@ -79,6 +73,7 @@ class _SignUpPageState extends State<SignUpPage> {
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 20),
             TextField(
@@ -88,9 +83,9 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             const SizedBox(height: 40),
             _isLoading
-                ? const CircularProgressIndicator() // Now correctly used
+                ? const CircularProgressIndicator()
                 : ElevatedButton(
-              onPressed: signUp,
+              onPressed: signupUser,
               child: const Text('Sign Up'),
             ),
             TextButton(

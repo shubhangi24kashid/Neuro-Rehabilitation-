@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:postgres/postgres.dart';
+import '../services/api_service.dart'; // Import the API service
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,41 +13,24 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<PostgreSQLConnection> connectToDatabase() async {
-    var connection = PostgreSQLConnection(
-      'your_host',
-      5432,
-      'your_database',
-      username: 'your_username',
-      password: 'your_password',
-    );
-    await connection.open();
-    return connection;
-  }
-
   Future<void> login() async {
     setState(() => _isLoading = true);
-    final conn = await connectToDatabase();
-    try {
-      var result = await conn.query(
-        'SELECT * FROM users WHERE email = @email AND password = @password',
-        substitutionValues: {
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        },
+
+    bool success = await ApiService.login(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (!mounted) return; // Ensure widget is still in the tree
+
+    setState(() => _isLoading = false);
+
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid credentials')),
       );
-      if (result.isNotEmpty) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid credentials')));
-      }
-    } catch (e) {
-      print('Error: $e');
-    } finally {
-      await conn.close();
-      setState(() => _isLoading = false);
     }
   }
 
@@ -63,6 +46,7 @@ class _LoginPageState extends State<LoginPage> {
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 20),
             TextField(
@@ -73,7 +57,10 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 40),
             _isLoading
                 ? const CircularProgressIndicator()
-                : ElevatedButton(onPressed: login, child: const Text('Login')),
+                : ElevatedButton(
+              onPressed: login,
+              child: const Text('Login'),
+            ),
             TextButton(
               onPressed: () => Navigator.pushNamed(context, '/signup'),
               child: const Text("Don't have an account? Sign Up"),
